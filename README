@@ -1,0 +1,218 @@
+'''
+    Copyright (C) 2021-2022 Stefan V. Pantazi (svpantazi@gmail.com)    
+    
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see http://www.gnu.org/licenses/.
+'''
+March 2022 - starting to update v10
+  - refactored the entire code base to improve readability
+  - added menu (pygame-menu)
+  - introduced the Jumper and Jumpers classe; Ramona and Scott inherit from Jumper;
+  character switching is handled by the Jumpers class. There can be multiple characters that can be played in turn
+
+2022
+new ideas:
+https://ai.googleblog.com/2021/04/monster-mash-sketch-based-tool-for.html
+https://monstermash.zone/
+
+new music?:
+https://hackaday.com/2022/01/20/when-a-single-bit-was-enough-into-the-sound-of-the-zx-spectrum/
+1 bit; http://randomflux.info/1bit/viewtopic.php?id=285
+https://tufty1.bandcamp.com/album/on-and-off
+
+
+*** version 8, Jan 2022, WIP, TO DO!
+  - cleaning of intro text
+  - build executable for windows 10 deployment
+
+*** version 075, Apr 12, change log: 
+Added Code for switching dynamically between multiple classes of characters in the game,
+ while having only one character active at one time.
+ You need to add and patch your existing 2 player game. 
+ Basically, a list of jumper classes and an index thorough that list, allows to cycle through it, even during game play.
+ So you can switch between an arbitrary number of characters with various powers during the game play 
+ (e.g, one class could be good at jumping, so great at collecting prizes,
+ while another jumper class may have the ability to shoot, so good to use in a boss fight!).
+
+*** version 07, Apr 11, 2021 change log: 
+Foam Bullets and shooting:
+  - a bullet object is like a hurdle but moving in the opposite direction and starting from the jumper current position
+  - can destroy hurdles when colliding with them - so collision behaviour is similar to hurdle killing the jumper
+  Steps:
+    1) make a copy of the hurdle.py and name it bullet.py
+    2) rename all references to Hurdle class in bullet.py to Bullet
+    3) find a suitable sprite map for the Bullets and modify the __init__() to load them up
+    4) create a new constant BULLET_VELOCITY, set it to a suitable value (30 seems ok) and use it instead of HURDLE_VELOCITY
+    5a) modify the physics of the bullet in the move() method so that the X position increase with the velocity value
+          self.posX += self.velocityX + MOVE_TIME_CONST * self.accelX
+    5b) also, when the bullet reaches the right side of the screen, it should not wrap around like hurdles do, but disappear so:
+        if self.posX > HGame.Width:
+          HGame.HideSprite(self) #object removes itself from all sprite group
+    5c) also, the bullet will never reach the left side of the screen so this code is non-functional and can be removed:
+        if self.posX < -self.rect.width // 2:
+          self.mutate()
+          self.posX = HGame.Width
+    
+    6) the bullets do not mutate or reset, rather they fly so, we need to merge the mutate() and reset() methods into fly(self,posX,posY);
+    this way the posX and posY parameters where the bullet starts flying can be passed along to reflect the jumper position
+    remove the calls to mutate() and reset() in the __init__() as well
+    6a) since the Y position is not random anymore (like the hurdles) in the new fly() method add the bullet object to the all sprites group 
+    so that it becomes visible, set the start X and Y position, the X velocity and create a boolean flag that indicates the bullet is flying
+        HGame.ShowSprite(self)
+        self.rect.midbottom = (HGame.Width,posY)
+        self.posX=posX
+        self.velocityX=BULLET_VELOCITY
+        self.accelX=0
+        self.flying=True
+    7) when the bullet object is created, i.e., in the __ini__() method set the flying boolean to false:
+        self.flying=False
+    
+  But where is the bullet object created, updated, etc.? clearly, bullets are attached to the jumper that can shoot them! So:
+    8) add a bullet object to the jumper object by initializing one in the __init__() of the jumper:
+      self.bullet=Bullet()
+    8a) clearly for this to work, you need to import the Bullet class in jumper.py:
+      from bullet import Bullet
+    9) in the main game update() method, we must call bullet.move() if the bullet is flying:
+      if jumper.bullet.flying:
+        jumper.bullet.move()
+    10) to trigger shooting, clearly a new key event needs to be handled: 
+      ...
+      elif e.key == pygame.K_DELETE:
+          jumper.bullet.fly(jumper.posX,jumper.posY)
+  At this point, if all is right, your jumper should shoot colorful sanitizer foam bubble bullets! But they are useless and no sound (:
+  We'll fix that by:
+    11) adding a shoot sound in the Jumper class and playing the sound when the shooting key is pressed; this is easy;
+      NOTE: the sound object could also be added to the bullet class (this is probably even more appropriate)
+    12) making the collisions between bullet and hurdles work; clearly this happens in the update() method of the game where,
+    when a bullet is flying, right after the jumper.bullet.move() call, we should check for collisions with the hurdle:
+      jumper.bullet.check_collisions_with(hurdle)
+    13) if all is well, the game will crash when the foam bullet hits a virus because the virus does not have a self.dead property and a 
+    die() method implemented;
+    you need to fix that!
+      def die(self):
+        #needs dramatic explosion here, but for now, just call mutate() and reset()
+        self.mutate()
+        self.reset()
+
+Clearly now, with the new shooting powers of the main character, the game has become too easy so additional tweaks are needed!
+So try to experiment more!
+
+still lots left to do!
+*** version 065, March 29, change log: 
+- added countdown timer at the beginning of game
+- moved game timers code in separate files
+- made the boolean flags that drive game logic properties of the HGame object, 
+  for easy access and improved code readability (no more global defs and annoying bugs)
+
+
+*** version 06, March 27, change log: 
+- major refactoring of code base
+- added Timer class to simplify the use of timers
+- added game Pause (BLANK key) functionality
+- implemented two phases game state logic - Game Ready / Game On
+    - Game ready - moveable jumper, hurdle or prize collisions disabled
+    - Game on - hurdle or prize collisions enabled
+- added timer for the game ending dramatic sequence
+- moved jumper sprite dictionary/database into consts.py
+- moved the platform class outside the main game code, into floor.py
+- added sprites to the hurdles (ugly coronavirus variants) and randomness to the hurdles vertical position
+
+
+*** version 05, March 24, change log: 
+- added new class SpriteMap to make loading sprites from spritesheets more flexible
+- modified the jumper __init__() code to accomodate the new way of loading sprites
+- creating a second player is a bit more complicated now when spritesheets are not identical
+  the easiest is to create another class Jumper2 and duplicate the code from original Jumper,
+  and modify the bits that differ between the two players (e.g., sprites, behaviour, physics, etc.)
+- modified the collectibles to add a new type of Prize: an elusive (5% probability to appear) COVID19 vaccine shot
+
+
+*** version 04, March 16, change log: 
+- added coin count and display
+- refactored collectibles.py
+- added collision immunity property for jumper - not triggered by anything yet (coin count?)
+
+
+*** version 03, March 10, change log: 
+- split codebase into separate files
+- added collectibles, prizes, coins so that player has an objective other than not dying
+- more sound effects and additional sprites (bitcoins)
+- refactored classes, methods names and identifiers for clarity
+- added more comments
+- renamed the game entry point game.py from hurdler_game.py
+
+
+*** version 02, March 09, change log: 
+  - cleaned up codebase, moved around some code
+  - removed less hard-coded file paths
+  - added additional properties and methods to the game module, to make it easier to change background image and music
+  - updated README file to collect links to image and sound assets borrowed from the internet (have to watch for license terms)
+
+*** version 01, Jan 2020
+- first version, mostly based on existing learning resources
+- at least the sprites and sounds work well!
+
+
+References
+
+Jumper sprites
+https://www.spriters-resource.com/page/faq/
+https://www.spriters-resource.com/fullview/70799/   
+
+Spritesheets
+https://opengameart.org/content/faq#q-proprietary
+https://opengameart.org/content/2danimationeffect
+
+Bitcoin image
+Wikimedia
+https://commons.wikimedia.org/wiki/File:Bitcoin.png
+
+Music, NO ATTRIBUTION - COPYRIGHT FREE*
+https://freepd.com/music/
+https://freepd.com/music/Wakka%20Wakka.mp3
+
+https://pngtree.com/free-clipart
+https://opengameart.org/content/game-over-screen
+
+https://www.freemusicpublicdomain.com/
+https://freepd.com/
+https://freesound.org/
+
+Wakka Wakka song:
+Written by Bryan Teoh. It's Yakity; it's saxity;
+ It is everything you ever needed for a chase scene.
+ This music is available for commercial and non-commercial purposes.
+
+Cash register sound
+https://www.findsounds.com/ISAPI/search.dll?keywords=cash+register 
+
+Covid vaccine png
+https://caymannewsservice.com/2020/12/1000-in-local-isolation-as-vaccine-approved-in-uk/
+
+Ouch sound:
+https://www.dreamstime.com/stock-music-sound-effect/ouch.html
+
+Coronavirus images:
+https://pngimg.com/image/93680
+https://similarpng.com/cartoon-characters-zany-face-emojis-coronavirus-microbes-covid-19-on-transparent-background-png/
+https://pngtree.com/freepng/corona-virus-cartoon-vector-illustration-with-facial-expression_5336379.html
+
+
+Hospital emerg room cartoon
+http://getdrawings.com/get-drawing#hospital-cartoon-drawing-55.jpg
+
+Other art resources
+https://stock.adobe.com/sk/search/images?k=emergency+room+cartoon
+
+Bubbles clipart
+https://www.clipartkey.com/downpng/TxbJbw_clip-art-bubble-material-transprent-png-bubbles-soap/
