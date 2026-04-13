@@ -24,6 +24,7 @@ from svp_modules.game.gmod.gm_timer import Timer
 
 import pygame as pygame
 from pygame.locals import *
+import random as rand
 
 from consts import *
 from floor import Platform
@@ -37,6 +38,8 @@ from menu import make_menu
 from boss import Boss
 
 HGame.Init(caption=GAME_CAPTION,mode=(1000,480))
+HGame.ShakeTimer = 1
+HGame.ShakeIntensity = 1
 HGame.FPS=60
 HGame.BGMoveSpeed=1
 #game setup
@@ -45,6 +48,7 @@ platform=Platform()
 higher_platform=LittlePlatform()
 hurdle=Hurdle()
 prizes=PrizeCollection()
+
 
 jumpers=Jumpers()
 boss=Boss()
@@ -153,10 +157,13 @@ def check_prize_and_hurdle_collisions():
     if not jumpers.current.dead:
       hurdle.check_collisions_with(jumpers.current)
 
-def game_update(keys):
+def game_update(keys=None):
   '''Game update callback gets called by pygame framework FPS-times a second.
   All drawing/display updates as well as collision checks belong here;
   Keypress info is also available here in order to allow for fast physics update: moves, hover, etc'''
+  
+  if keys is None:
+    keys = pygame.key.get_pressed()
   
   #Note how collisions with platform/floor are updated at all times, 
   # regardless of dead/alive status, or whether the game has not started
@@ -175,9 +182,49 @@ def game_update(keys):
   #for the keys associated with the movement directions
   jumpers.current.update(keys[K_LEFT],keys[K_RIGHT],keys[K_DOWN])  
 
-  #prizes are visible at all times
-  prizes.update()   
 
+if HGame.ShakeTimer > 0:
+    offset_x = rand.randint(-HGame.ShakeIntensity, HGame.ShakeIntensity)
+    offset_y = rand.randint(-HGame.ShakeIntensity, HGame.ShakeIntensity)
+
+    jumpers.current.rect.x += offset_x
+    jumpers.current.rect.y += offset_y
+
+    HGame.ShakeTimer -= 1
+    HGame.ShakeIntensity *= 0.8
+    
+      #prizes are visible at all times
+def game_update(keys=None):
+
+  if keys is None:
+    keys = pygame.key.get_pressed()
+
+  # platform collisions
+  check_platform_collisions()
+
+  # update enemies
+  hurdle.update()
+  boss.update()
+
+  # bullet collisions
+  if jumpers.current.has('bullet'):
+    jumpers.current.bullet.check_collisions_with(hurdle)
+
+  # player movement
+  jumpers.current.update(keys[K_LEFT], keys[K_RIGHT], keys[K_DOWN])
+
+  if HGame.ShakeTimer > 0:
+    offset_x = rand.randint(-HGame.ShakeIntensity, HGame.ShakeIntensity)
+    offset_y = rand.randint(-HGame.ShakeIntensity, HGame.ShakeIntensity)
+    HGame.ShakeTimer -= 1
+
+    jumpers.current.rect.x += offset_x
+    jumpers.current.rect.y += offset_y
+
+  # prizes
+  prizes.update()
+
+  # game state logic
   if HGame.Ready:
     pass
 
@@ -185,19 +232,16 @@ def game_update(keys):
     game_countdown_display()
 
   elif HGame.Playing:
-    #prize and hurdle collisions only during game on phase
     check_prize_and_hurdle_collisions()
+
     if jumpers.current.dead:
-      if jumpers.current.lives>0:
-        #respawn jumper
+      if jumpers.current.lives > 0:
         jumpers.current.live()
-      else:   
-        #current jumper is dead, cycle to next one
+      else:
         if jumpers.AllDead():
-          #they are all dead :(
           end_game()
-  
-  elif HGame.Over:          
+
+  elif HGame.Over:
     pass
 
 make_menu(start_countdown)

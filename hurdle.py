@@ -43,7 +43,8 @@ class Hurdle(SimpleSprite):
     #this is necessary to get access to the built-in sprite collision function spritecollide
     self.spriteGroup = pygame.sprite.Group()
     self.spriteGroup.add(self)
-
+    self.base_velocity = HURDLE_VELOCITY
+    self.start_time = pygame.time.get_ticks()
     self.sm=SpriteMap(getSpriteFile('corona/0ef191bf29bb89631d5527f681735e03.png'))
     self.image_list=self.sm.load_many(CORONA_SPRITES,color_key=RGB_WHITE)
 
@@ -57,7 +58,10 @@ class Hurdle(SimpleSprite):
       # also make them dead
       obj.velocityX = 0.0
       obj.posX = hurdle_hit[0].rect.left #there is only one hurdle in this group, hence hurdle_hit[0] will always work      
-      obj.die()#always, deadly collision! :( - reconsider? health? stamina?, damage model?, broken bones? healthcare healing prizes?
+      if obj.extra_life:
+        obj.extra_life = False
+      else:
+        obj.die()
   
   def mutate(self):
     image_index=rand.randint(0,len(self.image_list)-1)
@@ -97,6 +101,12 @@ class Hurdle(SimpleSprite):
 
   def update(self):
     if not self.dead:
-      self.move()
-      self.redraw()
+        time_alive = (pygame.time.get_ticks() - self.start_time) / 1000 
+        #Starts slowly, speeds up gradually, sets a max difficulty level to not make it impossible to play, but more challenging to avoid sprites.  
 
+        difficulty = min(5, time_alive * 0.20) 
+
+        self.velocityX = self.base_velocity + difficulty
+
+        self.move()
+        self.redraw()

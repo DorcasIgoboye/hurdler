@@ -38,7 +38,7 @@ def make_menu(start_countdown):
                     focus_background_color=(0, 0, 0,200),
                     title_background_color=(0, 0, 128,200)
                     )
-    HGame.Menu=pygame_menu.Menu('Hurdler (COVID-19)', 600, 200,theme=mytheme)    
+    HGame.Menu=pygame_menu.Menu('Hurdler (New and Improved)', 600, 200,theme=mytheme)    
     HGame.Menu.add.label('Controls: LEFT, RIGHT, UP-jump, DOWN-hover/duck, Delete-Shoot \n \
         F2 - music toggle, F4 - switch characters, SPACE - pause toggle')
     #HGame.Menu.add.text_input('Name:', default='')
