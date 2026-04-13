@@ -37,6 +37,7 @@ class Scott(Jumper):
     #initialize additional behaviour
     self.ducking=False
     self.duckSpriteImage=self.smap.load_one(SCOTT_SPRITES['duck_sprite'],color_key=(46,255,130))
+    self.extra_life = False
  
   def start_ducking(self):
     '''Ramona can shoot foam'''

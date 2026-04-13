@@ -41,6 +41,8 @@ class Ramona(Jumper):
     self.shootImages=self.smap.load_many(RAMONA_SHOOT_SPRITE_SEQUENCE['shooting_sprites'],color_key=(203,217,217))
     self.shooting=False
     self.bullet=Bullet()
+    self.extra_life = False
+
 
   def start_shooting(self):
     '''Ramona can shoot foam'''

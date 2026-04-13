@@ -53,10 +53,12 @@ class Prize(SimpleSprite):
   def disappear(self):
     HGame.HideSprite(self)    
 
-  def collect(self):
-    Prize.count=Prize.count+1
+  def collect(self, obj=None):
+    Prize.count += 1
     self.collectSound.play()
     self.disappear()
+
+
 
 class Vaccine(Prize):
   '''Vaccine prize class'''
@@ -65,9 +67,12 @@ class Vaccine(Prize):
   def __init__(self,time):
     super().__init__(time,getSpriteFile("covid-19-coronavirus-vaccine_cropped64.png"),getSoundFile("cashreg.wav"),getSoundFile("175946780.mp3"))
 
-  def collect(self):
-    super().collect()
-    Vaccine.count=Vaccine.count+1
+  def collect(self, obj=None):
+    super().collect(obj)
+    Vaccine.count += 1
+
+    if obj is not None:
+        obj.extra_life = True
 
 class Coin(Prize):
   '''Coin prize class'''
@@ -76,9 +81,9 @@ class Coin(Prize):
   def __init__(self,time):
     super().__init__(time,getSpriteFile("Bitcoin64.png"),getSoundFile("cashreg.wav"),getSoundFile("cashreg.wav"))
 
-  def collect(self):
-    super().collect()
-    Coin.count=Coin.count+1
+  def collect(self, obj=None):
+    super().collect(obj)
+    Coin.count += 1
 
 class HealthInfo(Prize):
   '''Health Informatics prize class'''
@@ -87,9 +92,9 @@ class HealthInfo(Prize):
   def __init__(self,time):
     super().__init__(time,getSpriteFile("bluebreeze_logo.png"),getSoundFile("hyperspace_activate.wav"),getSoundFile("cashreg.wav"))
 
-  def collect(self):
-    super().collect()
-    HealthInfo.count=HealthInfo.count+1
+  def collect(self, obj=None):
+    super().collect(obj)
+    HealthInfo.count += 1
 
 class PrizeCollection(): 
   '''Maintains the list of prizes'''     
@@ -112,7 +117,7 @@ class PrizeCollection():
 
   def add(self,count=1):    
     for i in range(count):
-      toss=rand.randint(0,100)      
+      toss=rand.randint(30,100)      
       if 0<toss<=PRIZE_PROBABILITY_RANGES[0]:
         prize=Vaccine(self.prize_timer.count)
       elif PRIZE_PROBABILITY_RANGES[0]<toss<=PRIZE_PROBABILITY_RANGES[1]:
@@ -133,14 +138,21 @@ class PrizeCollection():
   def reset_counts(self):
     Coin.count=0
     Vaccine.count=0
-  
-  def check_collisions_with(self,obj):        
-    prizes_hits = pygame.sprite.spritecollide(obj, self.prizeSpriteGroup, True)#True means that after collision, prize object disappears
+    HealthInfo.count=0
+
+  def check_collisions_with(self, obj):  
+    prizes_hits = pygame.sprite.spritecollide(obj, self.prizeSpriteGroup, True)
+
     for prize in prizes_hits:
-      prize.collect()      
-      self.prizeSpriteGroup.remove(prize)      
-      self.__prizes.remove(prize)#remove the collected prize from the prize list
-      self.add()#add a new thing to the collection 
+        prize.collect(obj)
+
+        if prize in self.prizeSpriteGroup:
+            self.prizeSpriteGroup.remove(prize)
+
+        if prize in self.__prizes:
+            self.__prizes.remove(prize)
+
+        self.add()
     
   def pause(self):
     self.prize_timer.pause()

@@ -41,8 +41,15 @@ class Platform(SimpleSprite):
 
   def check_collisions_with(self,obj):        
     plaform_hits = pygame.sprite.spritecollide(obj, self.spriteGroup, False)
+    
     if obj.velocityY > 0:
-      if plaform_hits:
-        # when hitting the platform/floor, stop the Y movement (i.e., Y velocity becomes zero)
-        obj.velocityY = 0.0 
-        obj.posY = plaform_hits[0].rect.top + 1
+        if plaform_hits:
+            # landing detected
+            
+            # 🔥 trigger shake ONLY if falling fast
+            if obj.velocityY > 5:
+                HGame.ShakeTimer = 8
+                HGame.ShakeIntensity = 6
+
+            obj.velocityY = 0.0 
+            obj.posY = plaform_hits[0].rect.top + 1 
