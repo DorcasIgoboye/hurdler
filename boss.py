@@ -26,11 +26,14 @@ from svp_modules.game.gmod.gm_sprite import SimpleSprite
 from consts import *
 import random as rand
 
-BOSS_SPRITES=[      
-    {'name':"cat 1",  'location':(432,1000), 'dimension':(350,200)},
-    {'name':"cat 1",  'location':(432,800), 'dimension':(350,200)},
-    {'name':"cat 1",  'location':(432,600), 'dimension':(350,200)}  
-    ]
+BOSS_SPRITES = [
+    {"name": "attack", "location": (0, 0), "dimension": (256, 300)},
+    {"name": "launch", "location": (256, 0), "dimension": (256, 300)},
+    {"name": "move", "location": (512, 0), "dimension": (256, 300)},
+    {"name": "hit", "location": (768, 0), "dimension": (256, 300)},
+    {"name": "conquer", "location": (0, 314), "dimension": (256, 300)},
+    {"name": "lose", "location": (256, 314), "dimension": (256, 300)}
+]
 
 class Boss(SimpleSprite):
   '''The Boss is a rectangle shape, but it could be any sprite
@@ -39,12 +42,17 @@ class Boss(SimpleSprite):
   def __init__(self):
     super().__init__()
 
+    # boss attack
+    self.bullet = None
+    self.shootCooldown = 0
+    self.attackSound = pygame.mixer.Sound(getSoundFile(BOSS_ATTACK_SOUND))
+
     #create a sprite group for Boss
     #this is necessary to get access to the built-in sprite collision function spritecollide
     self.spriteGroup = pygame.sprite.Group()
     self.spriteGroup.add(self)
 
-    self.sm=SpriteMap(getSpriteFile('cat-walking.png'))
+    self.sm=SpriteMap(getSpriteFile('active_trojan.jpg'))
     self.image_list=self.sm.load_many(BOSS_SPRITES,color_key=RGB_WHITE)
 
     self.dead=False
@@ -59,6 +67,14 @@ class Boss(SimpleSprite):
       obj.posX = boss_hits[0].rect.left #there is only one boss in this group, hence boss_hits[0] will always work      
       obj.die()#always, deadly collision! :( - reconsider? health? stamina?, damage model?, broken bones? healthcare healing prizes?
   
+  def shoot(self):
+    if self.bullet is None or not self.bullet.flying:
+        from bullet import Bullet
+        self.bullet = Bullet()
+        self.bullet.start_fly(self.posX, self.posY)
+        self.bullet.velocityX = -10  # shoot LEFT toward player
+        self.attackSound.play()
+
   def mutate(self):
     image_index=rand.randint(0,len(self.image_list)-1)
     self.image=self.image_list[image_index]
@@ -109,6 +125,15 @@ class Boss(SimpleSprite):
 
   def update(self):
     if not self.dead:
-      self.move()
-      self.redraw()
+        self.move()
+        self.redraw()
+
+        # shooting logic
+        self.shootCooldown += 1
+        if self.shootCooldown > 120:  # every ~2 seconds
+            self.shoot()
+            self.shootCooldown = 0
+
+        if self.bullet:
+            self.bullet.update()
 

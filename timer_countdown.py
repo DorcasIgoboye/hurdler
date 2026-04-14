@@ -22,20 +22,35 @@ import config
 from svp_modules.game.gmod.gm import HGame
 from svp_modules.game.gmod.gm_const import *
 from svp_modules.game.gmod.gm_timer import Timer
+from svp_modules.game.gmod.gm_helper import *
 
 from consts import *
 
+count_images = [
+    pygame.image.load(getImageFile('count_3.png')),
+    pygame.image.load(getImageFile('count_2.png')),
+    pygame.image.load(getImageFile('count_1.png')),
+    pygame.image.load(getImageFile('count_go.png'))
+]
+
+beep_sound = pygame.mixer.Sound(getSoundFile(COUNTDOWN_BEEP))
+go_sound = pygame.mixer.Sound(getSoundFile(COUNTDOWN_GO))
+
 def game_countdown_display():
-  COUNTDOWN_TEXT=['Ready','Set','Go!']
-  HGame.Font = pygame.font.SysFont('mono', 80, bold=True)  
-  HGame.TextOutMiddle(COUNTDOWN_TEXT[beginGameTimer.count],color=RGB_GREEN)
-  HGame.Font = pygame.font.SysFont('mono', 20, bold=True)   
+    index = beginGameTimer.count
+
+    if index < 3:
+        HGame.Canvas.blit(count_images[index], (HGame.MidX-100, HGame.MidY-100))
+        beep_sound.play()
+    elif index == 3:
+        HGame.Canvas.blit(count_images[3], (HGame.MidX-100, HGame.MidY-100))
+        go_sound.play()
 
 
 def game_begin_callback(timer):
   HGame.Begin()
 
-beginGameTimer=Timer(period=1000, end_callback=game_begin_callback,iterations=3,paused=True)
+beginGameTimer=Timer(period=1000, end_callback=game_begin_callback,iterations=4,paused=True)
 
 def begin_countdown():
   HGame.ShowCountdown=True

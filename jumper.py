@@ -30,11 +30,12 @@ from bullet import Bullet
 class Jumper(SimpleSprite):
   """Sprite for main jumper character"""
   
-  def __init__(self,sprite_map,color_key=None):
+  def __init__(self, sprite_map, color_key=None, player_id=1):
     '''Jumper construction, now since we have separated the jumper from the game
     the game object must be available for referencing, so we pass it along in the init, 
     as a parameter, every time we construct the Jumper'''
-    super().__init__()    
+    super().__init__()
+    self.player_id = player_id  
 
     #setting Jumper sounds
     self.jumpSound=pygame.mixer.Sound(getSoundFile("jump.wav"))
