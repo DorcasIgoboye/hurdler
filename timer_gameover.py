@@ -22,6 +22,7 @@ import config
 from svp_modules.game.gmod.gm import HGame
 from svp_modules.game.gmod.gm_const import *
 from svp_modules.game.gmod.gm_timer import Timer
+from svp_modules.game.gmod.gm_helper import *
 
 from consts import *
 
@@ -34,9 +35,10 @@ def game_reset_callback(timer):
 #which in turn, resets the game
 endGameTimer=Timer(period=7200,end_callback=game_reset_callback,iterations=1,paused=True)
 
+game_over_sound = pygame.mixer.Sound(getSoundFile(GAME_OVER_SOUND))
+
 def gameover_display():
   HGame.BGImgLoad(GAME_OVER_BACKGROUNG_IMAGE)
   HGame.Music=False #stop current background music, if any
-  HGame.BGMusicLoad(SAD_MUSIC_FILE)
-  HGame.Music=True # start sad music
+  game_over_sound.play()
   endGameTimer.restart()

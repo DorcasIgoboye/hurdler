@@ -30,11 +30,12 @@ from bullet import Bullet
 class Jumper(SimpleSprite):
   """Sprite for main jumper character"""
   
-  def __init__(self,sprite_map,color_key=None):
+  def __init__(self, sprite_map, color_key=None, player_id=1):
     '''Jumper construction, now since we have separated the jumper from the game
     the game object must be available for referencing, so we pass it along in the init, 
     as a parameter, every time we construct the Jumper'''
-    super().__init__()    
+    super().__init__()
+    self.player_id = player_id  
 
     #setting Jumper sounds
     self.jumpSound=pygame.mixer.Sound(getSoundFile("jump.wav"))
@@ -46,8 +47,13 @@ class Jumper(SimpleSprite):
 
     #then use the load many method to load the sprites in the image list
     #the color key is the special color that allows for transparency in the sprites images
-    self._Rimages=self.smap.load_many(sprite_map['left_right_move_sprites'],color_key=color_key)
+    
+    raw_images = self.smap.load_many(sprite_map['left_right_move_sprites'], color_key=color_key)
 
+    self._Rimages = [pygame.transform.flip(img, True, False) for img in raw_images]
+    
+    
+    
     #for the left direction images can be horizonally flipped
     #so no need for additional set of sprites - one direction is sufficient
     self._Limages=[]
@@ -122,9 +128,6 @@ class Jumper(SimpleSprite):
     self.rect=self.image.get_rect()
     self.rect.midbottom = (self.posX,self.posY)
     
-    #update lives display
-    HGame.TextOut("Lives:{0}".format(self.lives),(HGame.Width-350,0))    
-
 
   def jump(self,platform):
     '''Jumper can jump only when their feet touch the floor/platform by changing their velocity (KICK) in the Y direction;

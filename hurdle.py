@@ -26,11 +26,12 @@ from svp_modules.game.gmod.gm_sprite import SimpleSprite
 from consts import *
 import random as rand
 
-CORONA_SPRITES=[      
-    {'name':"virus variant 1",  'location':(18,66), 'dimension':(118,114)},
-    {'name':"virus variant 2",  'location':(221,64), 'dimension':(109,111)},
-    {'name':"virus variant 3",  'location':(135,22), 'dimension':(73,79)},
-    {'name':"virus variant 3",  'location':(257,241), 'dimension':(73,79)}]
+VIRUS_SPRITES = [
+    {"name": "Worm", "location": (0, 314), "dimension": (256, 300)},
+    {"name": "Virus", "location": (256, 314), "dimension": (256, 300)},
+    {"name": "Macro Virus", "location": (512, 314), "dimension": (256, 300)},
+    {"name": "Polymorphic Virus", "location": (768, 314), "dimension": (256, 300)}
+]
 
 class Hurdle(SimpleSprite):
   '''The hurdle is just a rectangle, but it could be any sprite
@@ -44,9 +45,21 @@ class Hurdle(SimpleSprite):
     self.spriteGroup = pygame.sprite.Group()
     self.spriteGroup.add(self)
     self.base_velocity = HURDLE_VELOCITY
+    self.speed = self.base_velocity  
     self.start_time = pygame.time.get_ticks()
-    self.sm=SpriteMap(getSpriteFile('corona/0ef191bf29bb89631d5527f681735e03.png'))
-    self.image_list=self.sm.load_many(CORONA_SPRITES,color_key=RGB_WHITE)
+    self.sm=SpriteMap(getSpriteFile('viruses_resized.png'))
+    self.image_list=self.sm.load_many(VIRUS_SPRITES,color_key=RGB_WHITE)
+
+    # Scale virus sprites to 25% size (adjust as needed)
+    scaled_list = []
+    for img in self.image_list:
+      new_w = img.get_width() // 4 
+      new_h = img.get_height() // 4  
+      scaled = pygame.transform.scale(img, (new_w, new_h))
+      scaled_list.append(scaled)
+
+    self.image_list = scaled_list
+
 
     self.dead=False
     self.reset()
@@ -58,10 +71,7 @@ class Hurdle(SimpleSprite):
       # also make them dead
       obj.velocityX = 0.0
       obj.posX = hurdle_hit[0].rect.left #there is only one hurdle in this group, hence hurdle_hit[0] will always work      
-      if obj.extra_life:
-        obj.extra_life = False
-      else:
-        obj.die()
+      obj.die()#always, deadly collision! :( - reconsider? health? stamina?, damage model?, broken bones? healthcare healing prizes?
   
   def mutate(self):
     image_index=rand.randint(0,len(self.image_list)-1)
@@ -72,41 +82,81 @@ class Hurdle(SimpleSprite):
     
   def reset(self):
     '''resets the position to the right side of the screen and, velocity to HURDLE_VELOCITY'''
+
+    if HGame.Difficulty == 'easy':
+      diff = 0.7
+    elif HGame.Difficulty == 'hard':
+      diff = 1.5
+    else:
+      diff = 1.0
+
+    self.spawn_time = pygame.time.get_ticks()
+    self.active = False
+    self.speed = self.base_velocity
     self.mutate()
-    self.posX=HGame.Width-self.rect.width//2
-    self.velocityX=HURDLE_VELOCITY
-    self.accelX=0
-    self.dead=False
-    self.posX = HGame.Width
-    
+
+    spawn_type = rand.choice(["LEFT", "RIGHT"])
+    SAFE_DISTANCE = 10 
+
+    if spawn_type == "LEFT":
+      self.posX = -self.rect.width - SAFE_DISTANCE
+      self.posY = rand.randint(self.rect.height, HGame.Height - 100)
+      self.velocityX = self.speed
+      self.velocityY = 0
+
+    elif spawn_type == "RIGHT":
+      self.posX = HGame.Width + SAFE_DISTANCE
+      self.posY = rand.randint(self.rect.height, HGame.Height - 100)
+      self.velocityX = -self.speed
+      self.velocityY = 0
+
+    self.direction = 1 if self.velocityX > 0 else -1
 
   def redraw(self):
     if self.posX < -self.rect.width // 2:      
       self.reset()
     self.rect.x = self.posX
+    self.rect.y = self.posY
 
+  
   def move(self):
-    '''Hurdle moves, or is it the Jumper that runs? Whatever your point of view,
-    for now, X accelleration is zero, but one can imagine a hurdle slowing down or speeding up for various reasons'''
-    self.accelX = 0#ACCELERATION_CONST
-    self.posX -= self.velocityX + MOVE_TIME_CONST * self.accelX
-    
-    if self.posX > HGame.Width:
-      self.posX = 0 #wrap around
+    self.posX += self.velocityX
+    self.posY += self.velocityY
+
+    if (
+        self.posX < -self.rect.width or
+        self.posX > HGame.Width + self.rect.width or
+        self.posY > HGame.Height + self.rect.height
+    ):
+        self.reset()
 
   def die(self):
     self.dead=True
     #dramatic explosion?
     self.reset()
 
+  def _get_difficulty_multiplier(self):
+    if HGame.Difficulty == 'easy':
+      return 0.7
+    elif HGame.Difficulty == 'hard':
+      return 1.5
+    return 1.0
+
+  def set_difficulty(self, mult):
+    self.speed = self.base_velocity * mult
+
+    
   def update(self):
+    if not self.active:
+        if pygame.time.get_ticks() - self.spawn_time > 800:
+            self.active = True
+        else:
+            return
+
     if not self.dead:
-        time_alive = (pygame.time.get_ticks() - self.start_time) / 1000 
-        #Starts slowly, speeds up gradually, sets a max difficulty level to not make it impossible to play, but more challenging to avoid sprites.  
+        time_alive = (pygame.time.get_ticks() - self.start_time) / 1000
+        time_factor = 1 + time_alive * 0.0005
+        self.velocityX = self.direction * self.speed * time_factor
 
-        difficulty = min(5, time_alive * 0.20) 
-
-        self.velocityX = self.base_velocity + difficulty
-
-        self.move()
-        self.redraw()
+    self.move()
+    self.redraw()

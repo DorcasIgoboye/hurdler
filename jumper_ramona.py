@@ -29,11 +29,11 @@ from bullet import Bullet
 class Ramona(Jumper):
   """Sprite for main jumper character"""
   
-  def __init__(self):
+  def __init__(self, player_id=1):
     '''Jumper construction, now since we have separated the jumper from the game
     the game object must be available for referencing, so we pass it along in the init, 
     as a parameter, every time we construct the Jumper'''
-    super().__init__(RAMONA_SPRITES,color_key=(203,217,217))
+    super().__init__(RAMONA_SPRITES, color_key=(203,217,217), player_id=player_id)
 
     #initialize additional behaviour
     #setting shoot sound
@@ -41,8 +41,6 @@ class Ramona(Jumper):
     self.shootImages=self.smap.load_many(RAMONA_SHOOT_SPRITE_SEQUENCE['shooting_sprites'],color_key=(203,217,217))
     self.shooting=False
     self.bullet=Bullet()
-    self.extra_life = False
-
 
   def start_shooting(self):
     '''Ramona can shoot foam'''

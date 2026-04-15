@@ -39,74 +39,85 @@ IDLE_POSE_INDEX=0
 
 LIVES_COUNT=3
 
-GAME_CAPTION="Hurdler "+CURRENT_VERSION+", by S. V. Pantazi (svpantazi@gmail.com) "
-BACKGROUND_IMAGE_FILE='hospital-cartoon-drawing-55.jpg'
-PARALAX_BACKGROUND_IMAGE_FILE='Easter.png'
-GAME_OVER_BACKGROUNG_IMAGE='game_over.png'
-BACKGROUND_MUSIC_FILE='explosion2.wav'
+GAME_CAPTION="Cyber Infection: Firewall Collapse"
+BACKGROUND_IMAGE_FILE='bgfirewall.png'
+PARALAX_BACKGROUND_IMAGE_FILE='bgfirewall.png'
+GAME_OVER_BACKGROUNG_IMAGE='game_over_screen.png'
+BACKGROUND_MUSIC_FILE='background.mp3'
 SAD_MUSIC_FILE='cashreg.wav'
+COUNTDOWN_BEEP='count_beep.mp3'
+COUNTDOWN_GO='go.mp3'
+GAME_OVER_SOUND='game_over.mp3'
+BOSS_HIT_SOUND='boss_hit.mp3'
+BOSS_ATTACK_SOUND='boss_attack.mp3'
 DEFAULT_BACKGROUND_MUSIC_ON=False #put this on False ASAP so that you do not go crazy
 
 #setting Jumper 1 sprites dictionary/database      
 #to find dimensions of a sprite, you need to load it up in some paint program
 #then hover with the mouse on it and estimate the pixel position of its left top corner as well as its pixel width and height
 
-RAMONA_SPRITES={
-  'file':"Xbox 360 - Scott Pilgrim vs the World The Game - Ramona Flowers P3.png",
-  'left_right_move_sprites':[
-    {'name':"neutral pose",'location':(4,26),    'dimension':(36,70)},
-    {'name':"Run pose 1",  'location':(630,120), 'dimension':(50,70)},
-    {'name':"Run pose 2",  'location':(680,120), 'dimension':(45,70)},
-    {'name':"Run pose 3",  'location':(730,120), 'dimension':(45,70)},
-    {'name':"Run pose 4",  'location':(780,120), 'dimension':(45,70)},
-    {'name':"Run pose 5",  'location':(825,120), 'dimension':(45,70)},
-    {'name':"Run pose 6",  'location':(874,120), 'dimension':(43,70)},
-    {'name':"Run pose 7",  'location':(917,120), 'dimension':(47,70)},
-    {'name':"Run pose 8",  'location':(915,120), 'dimension':(50,70)}
+RAMONA_SPRITES = {
+  'file': "Xbox 360 - Scott Pilgrim vs the World The Game - Ramona Flowers P3.png",
+
+  'left_right_move_sprites': [
+    {'name': "idle1", 'location': (0, 128), 'dimension': (64,64)},
+    {'name': "idle2", 'location': (64, 128), 'dimension': (64,64)},
+    {'name': "idle3", 'location': (128, 128), 'dimension': (64,64)},
+
+    {'name': "run1", 'location': (0, 64), 'dimension': (64,64)},
+    {'name': "run2", 'location': (64, 64), 'dimension': (64,64)},
+    {'name': "run3", 'location': (128, 64), 'dimension': (64,64)},
+    {'name': "run4", 'location': (192, 64), 'dimension': (64,64)},
+    {'name': "run5", 'location': (256, 64), 'dimension': (64,64)},
+    {'name': "run6", 'location': (320, 64), 'dimension': (64,64)}
   ],
-  'dead_sprite':
-    {'name':"dead pose",'location':(1174,728),'dimension':(75,40)}
+
+  'dead_sprite': {
+    'name': "dead",
+    'location': (0, 34*64),
+    'dimension': (64,64)
+  }
 }
 
-RAMONA_SHOOT_SPRITE_SEQUENCE={  
-  'file':"Xbox 360 - Scott Pilgrim vs the World The Game - Ramona Flowers P3.png",
-  'shooting_sprites':[
-    #{'name':"shoot pose 1",  'location':(635,1450),'dimension':(40,70)},    
-    {'name':"shoot pose 2",  'location':(675,1450), 'dimension':(32,70)},    
-    {'name':"shoot pose 3",  'location':(707,1450), 'dimension':(44,70)},
-    {'name':"shoot pose 4",  'location':(751,1450), 'dimension':(49,70)},    
-    {'name':"shoot pose 5",  'location':(800,1450), 'dimension':(50,70)},    
-    {'name':"shoot pose 6",  'location':(850,1450), 'dimension':(51,70)},    
-    {'name':"shoot pose 7",  'location':(898,1450), 'dimension':(84,70)},    
-    {'name':"shoot pose 8",  'location':(982,1450), 'dimension':(84,70)},    
-    {'name':"shoot pose 9",  'location':(1066,1450), 'dimension':(82,70)},    
-    {'name':"shoot pose 10",  'location':(1148,1450), 'dimension':(89,70)},    
-    {'name':"shoot pose 11",  'location':(1237,1450), 'dimension':(86,70)},        
-    {'name':"shoot pose 12",  'location':(1323,1450), 'dimension':(50,70)},    
-    {'name':"shoot pose 13",  'location':(1373,1450), 'dimension':(41,70)},    
-    #{'name':"shoot pose 14",  'location':(1414,1450), 'dimension':(36,70)}    
+RAMONA_SHOOT_SPRITE_SEQUENCE = {
+  'file': "Xbox 360 - Scott Pilgrim vs the World The Game - Ramona Flowers P3.png",
+
+  'shooting_sprites': [
+    {'name': "shoot1", 'location': (0, 192), 'dimension': (64,64)},
+    {'name': "shoot2", 'location': (64, 192), 'dimension': (64,64)},
+    {'name': "shoot3", 'location': (128, 192), 'dimension': (64,64)},
+    {'name': "shoot4", 'location': (192, 192), 'dimension': (64,64)},
+    {'name': "shoot5", 'location': (256, 192), 'dimension': (64,64)}
   ]
 }
 
 #setting Jumper 2 sprites dictionary/database
-SCOTT_SPRITES={
-  'file':"Xbox 360 - Scott Pilgrim vs the World The Game - Scott Pilgrim P1.png",
-  'left_right_move_sprites':[
-    {'name':"neutral pose",'location':(5,8),    'dimension':(40,60)},
-    {'name':"Run pose 1",  'location':(8,79),   'dimension':(40,60)},
-    {'name':"Run pose 2",  'location':(50,75),  'dimension':(45,70)},
-    {'name':"Run pose 3",  'location':(97,78),  'dimension':(45,70)},
-    {'name':"Run pose 4",  'location':(155,82), 'dimension':(45,70)},
-    {'name':"Run pose 5",  'location':(205,81), 'dimension':(45,70)},
-    {'name':"Run pose 6",  'location':(245,77), 'dimension':(43,70)},
-    {'name':"Run pose 7",  'location':(290,76), 'dimension':(47,70)},
-    {'name':"Run pose 8",  'location':(341,81), 'dimension':(50,70)}
-  ],
-  'dead_sprite':
-    {'name':"dead pose",'location':(219,1286),'dimension':(75,40)},
-  'duck_sprite':
-    {'name':"low height pose",'location':(233,1111),'dimension':(325-233,1145-1111)}  
+SCOTT_SPRITES = {
+  'file': "Xbox 360 - Scott Pilgrim vs the World The Game - Scott Pilgrim P1.png",
 
+  'left_right_move_sprites': [
+    {'name': "neutral pose", 'location': (0*64, 2*64), 'dimension': (64, 64)},
+    {'name': "Run pose 1",   'location': (1*64, 2*64), 'dimension': (64, 64)},
+    {'name': "Run pose 2",   'location': (2*64, 2*64), 'dimension': (64, 64)},
+    {'name': "Run pose 3",   'location': (3*64, 2*64), 'dimension': (64, 64)},
+    {'name': "Run pose 4",   'location': (4*64, 2*64), 'dimension': (64, 64)},
+    {'name': "Run pose 5",   'location': (5*64, 2*64), 'dimension': (64, 64)},
+    {'name': "Run pose 6",   'location': (6*64, 2*64), 'dimension': (64, 64)},
+    {'name': "Run pose 7",   'location': (7*64, 2*64), 'dimension': (64, 64)},
+    {'name': "Run pose 8",   'location': (8*64, 2*64), 'dimension': (64, 64)}
+  ],
+
+  'dead_sprite': {
+    'name': "dead pose",
+    'location': (0*64, 0*64),
+    'dimension': (64, 64)
+  },
+
+  'duck_sprite': {
+    'name': "duck pose",
+    'location': (1*64, 1*64),
+    'dimension': (64, 64)
+  }
 }
 
 print(CURRENT_VERSION)

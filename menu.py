@@ -23,25 +23,53 @@ from pygame.locals import *
 from consts import *
 from svp_modules.game.gmod.gm_const import *
 
-def set_difficulty(value, difficulty):
-    pass
+def set_difficulty(selected, index):
+    text, value = selected 
 
+    if text == 'Easy':
+        HGame.Difficulty = 'easy'
+    elif text == 'Hard':
+        HGame.Difficulty = 'hard'
+        
 def make_menu(start_countdown):
-    mytheme = Theme(background_color=(128, 128, 128, 200), # transparent background
-                    #title_shadow=True,
-                    #widget_font=pygame_menu.font.FONT_COMIC_NEUE,
-                    widget_font_size=16,
-                    widget_font_color=RGB_BLACK,
-                    #widget_font_shadow=True,
-                    cursor_color=(255, 0, 255),
-                    cursor_selection_color=(255, 0, 0,0),
-                    focus_background_color=(0, 0, 0,200),
-                    title_background_color=(0, 0, 128,200)
-                    )
-    HGame.Menu=pygame_menu.Menu('Hurdler (New and Improved)', 600, 200,theme=mytheme)    
+    mytheme = Theme(
+    background_color=(128, 128, 128, 200),
+
+    title_font=pygame_menu.font.FONT_8BIT,  
+    title_font_size=35,                      
+
+    widget_font_size=16,
+    widget_font_color=RGB_BLACK,
+
+    cursor_color=(255, 0, 255),
+    focus_background_color=(0, 0, 0,200),
+    title_background_color=(0, 0, 128,200)
+)
+    HGame.Menu=pygame_menu.Menu('Cyber Infection', 600, 200,theme=mytheme)    
     HGame.Menu.add.label('Controls: LEFT, RIGHT, UP-jump, DOWN-hover/duck, Delete-Shoot \n \
         F2 - music toggle, F4 - switch characters, SPACE - pause toggle')
     #HGame.Menu.add.text_input('Name:', default='')
-    #HGame.Menu.add.selector('Difficulty:', [('Hard', 1), ('Easy', 2)], onchange=set_difficulty)
+    HGame.Menu.add.selector('Difficulty:', [('Hard', 1), ('Easy', 2)], onchange=set_difficulty)
     HGame.Menu.add.button('Play', start_countdown)
+    HGame.Menu.add.button('Controls', controls_menu())
     HGame.Menu.add.button('Quit', pygame_menu.events.EXIT)
+
+
+def controls_menu():
+    controls = pygame_menu.Menu('Controls', 600, 400)
+
+    controls.add.label('Player 1 (Ramona)')
+    controls.add.label('A / D - Move left/right')
+    controls.add.label('W - Jump')
+    controls.add.label('S - Hover')
+    controls.add.label('F - Shoot')
+
+    controls.add.label('')
+
+    controls.add.label('Player 2 (Scott)')
+    controls.add.label('Left Arrow / Right Arrow - Move')
+    controls.add.label('Up Arrow - Jump')
+    controls.add.label('Down Arrow - Duck')
+    controls.add.button('Back', pygame_menu.events.BACK)
+
+    return controls
