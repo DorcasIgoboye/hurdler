@@ -58,38 +58,54 @@ class Prize(SimpleSprite):
     self.collectSound.play()
     self.disappear()
 
-class Vaccine(Prize):
-  '''Vaccine prize class'''
+class AntivirusPatch(Prize):
+  '''Antivirus prize class'''
   count=0
 
   def __init__(self,time):
-    super().__init__(time,getSpriteFile("covid-19-coronavirus-vaccine_cropped64.png"),getSoundFile("cashreg.wav"),getSoundFile("175946780.mp3"))
+    super().__init__(time,getSpriteFile("antivirus_patch.jpg"),getSoundFile("cashreg.wav"),getSoundFile("175946780.mp3"))
 
   def collect(self):
     super().collect()
-    Vaccine.count=Vaccine.count+1
+    AntivirusPatch.count=AntivirusPatch.count+1
 
-class Coin(Prize):
-  '''Coin prize class'''
+class Money(Prize):
+    '''Using a money system that calculates the total amount of each denomination'''
+    total = 0
+
+    def __init__(self, time):
+        import random
+        self.value = random.choice([5,10,20,50,100])
+
+        sprite_map = {
+            5: "note_5.png",
+            10: "note_10.png",
+            20: "note_20.png",
+            50: "note_50.png",
+            100: "note_100.png"
+        }
+
+        super().__init__(
+            time,
+            getSpriteFile(sprite_map[self.value]),
+            getSoundFile("cashreg.wav"),
+            getSoundFile("cashreg.wav")
+        )
+
+    def collect(self):
+        super().collect()
+        Money.total += self.value
+
+class Overclock(Prize):
+  '''Overclock prize'''
   count=0
 
   def __init__(self,time):
-    super().__init__(time,getSpriteFile("Bitcoin64.png"),getSoundFile("cashreg.wav"),getSoundFile("cashreg.wav"))
+    super().__init__(time,getSpriteFile("overclock.png"),getSoundFile("hyperspace_activate.wav"),getSoundFile("cashreg.wav"))
 
   def collect(self):
     super().collect()
-    Coin.count=Coin.count+1
-
-class HealthInfo(Prize):
-  '''Health Informatics prize class'''
-  count=0
-
-  def __init__(self,time):
-    super().__init__(time,getSpriteFile("bluebreeze_logo.png"),getSoundFile("hyperspace_activate.wav"),getSoundFile("cashreg.wav"))
-
-  def collect(self):
-    super().collect()
-    HealthInfo.count=HealthInfo.count+1
+    Overclock.count=Overclock.count+1
 
 class PrizeCollection(): 
   '''Maintains the list of prizes'''     
@@ -114,11 +130,11 @@ class PrizeCollection():
     for i in range(count):
       toss=rand.randint(0,100)      
       if 0<toss<=PRIZE_PROBABILITY_RANGES[0]:
-        prize=Vaccine(self.prize_timer.count)
+        prize=AntivirusPatch(self.prize_timer.count)
       elif PRIZE_PROBABILITY_RANGES[0]<toss<=PRIZE_PROBABILITY_RANGES[1]:
-        prize=HealthInfo(self.prize_timer.count)        
+        prize=Overclock(self.prize_timer.count)        
       else:
-        prize=Coin(self.prize_timer.count)
+        prize=Money(self.prize_timer.count) # Using notes instead
       self.__prizes.append(prize)
   
   def reset(self):
@@ -131,8 +147,8 @@ class PrizeCollection():
 
 
   def reset_counts(self):
-    Coin.count=0
-    Vaccine.count=0
+    Money.total = 0
+    AntivirusPatch.count=0
   
   def check_collisions_with(self,obj):        
     prizes_hits = pygame.sprite.spritecollide(obj, self.prizeSpriteGroup, True)#True means that after collision, prize object disappears
@@ -149,11 +165,4 @@ class PrizeCollection():
     self.prize_timer.unpause()
   
   def update(self):
-    HGame.TextOut("Coins:{0}, Vacc's:{1}".format(Coin.count,Vaccine.count),(HGame.Width-220,0),RGB_GREEN)    
-
-
-
-
-
-  
-
+    HGame.TextOut("Money:{0}, antv's:{0}, Clock {0}".format(Money.total,AntivirusPatch.count,Overclock.count),(HGame.Width-700,10),RGB_GREEN)    

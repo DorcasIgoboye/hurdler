@@ -27,7 +27,6 @@ from pygame.locals import *
 
 from consts import *
 from floor import Platform
-from higher_platform import LittlePlatform
 from jumpers import Jumpers
 from hurdle import Hurdle
 from collectibles import PrizeCollection
@@ -35,6 +34,11 @@ from timer_countdown import begin_countdown, game_countdown_display
 from timer_gameover import gameover_display
 from menu import make_menu
 from boss import Boss
+from jumper_ramona import Ramona
+from jumper_scott import Scott
+from core import DataCore
+from game_state import State
+from narrative import Narrative
 
 HGame.Init(caption=GAME_CAPTION,mode=(1000,480))
 HGame.FPS=60
@@ -42,14 +46,20 @@ HGame.BGMoveSpeed=1
 #game setup
 #create game objects
 platform=Platform()
-higher_platform=LittlePlatform()
-hurdle=Hurdle()
+core = DataCore()
+hurdle = Hurdle(core)
+
 prizes=PrizeCollection()
 
-jumpers=Jumpers()
-boss=Boss()
+player1 = Ramona(player_id=1)
+player2 = Scott(player_id=2)
+jumpers = [player1, player2]
+players = jumpers
 
-HGame.ShowSprites([platform,higher_platform,hurdle,jumpers.current,boss])
+boss = Boss(players, State.level)
+narrative = Narrative()
+
+HGame.ShowSprites([platform, hurdle, player1, player2, boss])
 
 def reset_game():
   ''' Resets all game objects to the initial state, ready to begin
@@ -80,12 +90,12 @@ def reset_game():
 
   HGame.BGImage.set_alpha(50) #transparent background
   
-  jumpers.Reset()  
-  prizes.reset_counts()
+  for player in jumpers:
+    player.reset()
+    player.live()
 
   #jumper position can be offset in the X direction
-  jumpers.current.live(XPosOffset=-50)
-
+  player1.live(XPosOffset=-50)
   #jumpers.current.immune=True  #good for testing
 
   HGame.Menu.enable()
@@ -103,6 +113,10 @@ def begin_play():
   HGame.Playing=True
   prizes.unpause()
   HGame.BGImage.set_alpha(255) #complete opacity 
+  if State.level >= 2:
+      boss.active = True # boss active
+  else:
+      boss.active = False
 
 def end_game():
   '''Game ended, dramatic background and sad music start. 
@@ -114,6 +128,7 @@ def end_game():
   HGame.BGMoveSpeed=0
   HGame.BGParallaxImages.clear()
   gameover_display()
+  narrative.game_lost()
      
 def process_events(e):
   '''checks for key presses and other less frequent events such as timers, etc.'''
@@ -127,31 +142,30 @@ def process_events(e):
     elif e.key == pygame.K_RETURN:
       if HGame.Ready:
         start_countdown()
-    elif e.key == pygame.K_UP:
-        jumpers.current.jump(platform)
-    elif e.key == pygame.K_DELETE:
-        if jumpers.current.can("start_shooting"):
-        #if jumper.__class__==Jumper:
-          jumpers.current.start_shooting()
-    #elif e.key == pygame.K_w:
-    #    jumper2.jump(platform)      
-    elif e.key == pygame.K_F4:      
-      jumpers.Cycle()
+      
+      # Player 2 jump key
+      if e.key == pygame.K_UP:
+         player2.jump(platform)
+
+      # Player 1 jump key
+      if e.key == pygame.K_SPACE:
+          player1.jump(platform)
 
 def check_platform_collisions():     
   '''Platform/floor collisions are separate because they are essential in both phases of the game (ready and during play)
   or else jumpers with go through the floor forever, due to the physics of gravity!'''
-  platform.check_collisions_with(jumpers.current)   
-  higher_platform.check_collisions_with(jumpers.current)         
+  for player in jumpers:
+    platform.check_collisions_with(player)
+        
 
 def check_prize_and_hurdle_collisions():     
   '''Prizes and hurdle collisions are enabled only in the play phase of the game, when the game is on!
   Clearly, the current jumper is not immune to collecting prizes :)'''
-  prizes.check_collisions_with(jumpers.current)
-  #immunity! collect a prize, get immunity! should not be too difficult to implement
-  if not jumpers.current.immune:
-    if not jumpers.current.dead:
-      hurdle.check_collisions_with(jumpers.current)
+  for player in jumpers:
+    prizes.check_collisions_with(player)
+    if not player.immune and not player.dead:
+        hurdle.check_collisions_with(player)
+
 
 def game_update(keys):
   '''Game update callback gets called by pygame framework FPS-times a second.
@@ -166,14 +180,48 @@ def game_update(keys):
   # collisions with them are enabled only during the game on phase
   hurdle.update()
   boss.update()
+  narrative.update()
+  narrative.draw(HGame)
 
-  if jumpers.current.has('bullet'):
-    jumpers.current.bullet.check_collisions_with(hurdle)
+  for player in jumpers:
+    if player.has('bullet'):
+        player.bullet.check_collisions_with(hurdle)
+
+  # --- BOSS BULLET COLLISION CHECK ---
+  if boss.bullet:
+    for player in jumpers:
+      boss.bullet.check_collisions_with(player)
+
   #jumpers are updated and moved at all times unless dead
   #the moving logic was moved into the Jumper class
   #here the update method is called with the boolean values
   #for the keys associated with the movement directions
-  jumpers.current.update(keys[K_LEFT],keys[K_RIGHT],keys[K_DOWN])  
+  for player in jumpers:
+    if player.player_id == 1:
+        l = keys[K_a]
+        r = keys[K_d]
+        down = keys[K_s]
+        jump = keys[K_SPACE]
+        shoot = keys[K_f]
+
+    elif player.player_id == 2:
+        l = keys[K_LEFT]
+        r = keys[K_RIGHT]
+        down = keys[K_DOWN]
+        jump = keys[K_UP]
+        shoot = keys[K_RCTRL]
+
+    # movement
+    player.update(l, r, down)
+
+    # jumping
+    if jump:
+        player.jump(platform)
+
+    # shooting
+    if shoot and player.can("start_shooting"):
+        player.start_shooting()
+  
 
   #prizes are visible at all times
   prizes.update()   
@@ -185,17 +233,32 @@ def game_update(keys):
     game_countdown_display()
 
   elif HGame.Playing:
+    # Increase difficulty
+    boss.velocityX += 0.001
+    hurdle.velocityX += 0.001
+
     #prize and hurdle collisions only during game on phase
     check_prize_and_hurdle_collisions()
-    if jumpers.current.dead:
-      if jumpers.current.lives>0:
-        #respawn jumper
-        jumpers.current.live()
-      else:   
-        #current jumper is dead, cycle to next one
-        if jumpers.AllDead():
-          #they are all dead :(
-          end_game()
+    all_dead = True
+
+    # Draw the core every frame during active gameplay and end the game
+    core.draw()
+
+    if core.is_destroyed():
+        HGame.GameOver = True
+
+    for player in jumpers:
+        if player.dead:
+            if player.lives > 0:
+                player.live()
+            else:
+                pass  # player stays dead
+        else:
+            all_dead = False
+
+    if all_dead:
+       end_game()
+
   
   elif HGame.Over:          
     pass

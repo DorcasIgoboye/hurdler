@@ -37,14 +37,19 @@ BULLET_VELOCITY=20
 STRIDE_SIZE=20
 IDLE_POSE_INDEX=0
 
-LIVES_COUNT=3
+LIVES_COUNT=5
 
-GAME_CAPTION="Hurdler "+CURRENT_VERSION+", by S. V. Pantazi (svpantazi@gmail.com) "
-BACKGROUND_IMAGE_FILE='hospital-cartoon-drawing-55.jpg'
-PARALAX_BACKGROUND_IMAGE_FILE='Easter.png'
-GAME_OVER_BACKGROUNG_IMAGE='game_over.png'
-BACKGROUND_MUSIC_FILE='explosion2.wav'
+GAME_CAPTION="Cyber Infection: Firewall Collapse"
+BACKGROUND_IMAGE_FILE='bg_cyber.png'
+PARALAX_BACKGROUND_IMAGE_FILE='bg_parallax_grid.png'
+GAME_OVER_BACKGROUNG_IMAGE='game_over_screen.png'
+BACKGROUND_MUSIC_FILE='background.mp3'
 SAD_MUSIC_FILE='cashreg.wav'
+COUNTDOWN_BEEP='count_beep.mp3'
+COUNTDOWN_GO='go.mp3'
+GAME_OVER_SOUND='game_over.mp3'
+BOSS_HIT_SOUND='boss_hit.mp3'
+BOSS_ATTACK_SOUND='boss_attack.mp3'
 DEFAULT_BACKGROUND_MUSIC_ON=False #put this on False ASAP so that you do not go crazy
 
 #setting Jumper 1 sprites dictionary/database      

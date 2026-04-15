@@ -26,26 +26,39 @@ from svp_modules.game.gmod.gm_sprite import SimpleSprite
 from consts import *
 import random as rand
 
-CORONA_SPRITES=[      
-    {'name':"virus variant 1",  'location':(18,66), 'dimension':(118,114)},
-    {'name':"virus variant 2",  'location':(221,64), 'dimension':(109,111)},
-    {'name':"virus variant 3",  'location':(135,22), 'dimension':(73,79)},
-    {'name':"virus variant 3",  'location':(257,241), 'dimension':(73,79)}]
+VIRUS_SPRITES = [
+    {"name": "Worm", "location": (0, 314), "dimension": (256, 300)},
+    {"name": "Virus", "location": (256, 314), "dimension": (256, 300)},
+    {"name": "Macro Virus", "location": (512, 314), "dimension": (256, 300)},
+    {"name": "Polymorphic Virus", "location": (768, 314), "dimension": (256, 300)}
+]
 
 class Hurdle(SimpleSprite):
   '''The hurdle is just a rectangle, but it could be any sprite
   collision with rectangle objects is dead easy, built-into pygame'''
 
-  def __init__(self):
+  def __init__(self, core):
     super().__init__()
 
     #create a sprite group for hurdle
     #this is necessary to get access to the built-in sprite collision function spritecollide
     self.spriteGroup = pygame.sprite.Group()
     self.spriteGroup.add(self)
+    self.core = core
 
-    self.sm=SpriteMap(getSpriteFile('corona/0ef191bf29bb89631d5527f681735e03.png'))
-    self.image_list=self.sm.load_many(CORONA_SPRITES,color_key=RGB_WHITE)
+    self.sm=SpriteMap(getSpriteFile('viruses.jpg'))
+    self.image_list=self.sm.load_many(VIRUS_SPRITES,color_key=RGB_WHITE)
+
+    # Scale virus sprites to 25% size (adjust as needed)
+    scaled_list = []
+    for img in self.image_list:
+      new_w = img.get_width() // 4 
+      new_h = img.get_height() // 4  
+      scaled = pygame.transform.scale(img, (new_w, new_h))
+      scaled_list.append(scaled)
+
+    self.image_list = scaled_list
+
 
     self.dead=False
     self.reset()
@@ -69,26 +82,45 @@ class Hurdle(SimpleSprite):
   def reset(self):
     '''resets the position to the right side of the screen and, velocity to HURDLE_VELOCITY'''
     self.mutate()
-    self.posX=HGame.Width-self.rect.width//2
-    self.velocityX=HURDLE_VELOCITY
-    self.accelX=0
-    self.dead=False
-    self.posX = HGame.Width
-    
+
+    spawn_type = rand.choice(["LEFT", "RIGHT", "TOP"])
+
+    if spawn_type == "LEFT":
+        self.posX = -self.rect.width
+        self.posY = rand.randint(self.rect.height, HGame.Height)
+        self.velocityX = rand.randint(4,8)
+        self.velocityY = 0
+
+    elif spawn_type == "RIGHT":
+        self.posX = HGame.Width
+        self.posY = rand.randint(self.rect.height, HGame.Height)
+        self.velocityX = -rand.randint(4,8)
+        self.velocityY = 0
+
+    elif spawn_type == "TOP":
+        self.posX = rand.randint(0, HGame.Width)
+        self.posY = -self.rect.height
+        self.velocityX = rand.randint(-2,2)
+        self.velocityY = rand.randint(5,10)
+
+    self.dead = False
 
   def redraw(self):
     if self.posX < -self.rect.width // 2:      
       self.reset()
     self.rect.x = self.posX
 
+  
   def move(self):
-    '''Hurdle moves, or is it the Jumper that runs? Whatever your point of view,
-    for now, X accelleration is zero, but one can imagine a hurdle slowing down or speeding up for various reasons'''
-    self.accelX = 0#ACCELERATION_CONST
-    self.posX -= self.velocityX + MOVE_TIME_CONST * self.accelX
-    
-    if self.posX > HGame.Width:
-      self.posX = 0 #wrap around
+    self.posX += self.velocityX
+    self.posY += self.velocityY
+
+    if (
+        self.posX < -self.rect.width or
+        self.posX > HGame.Width + self.rect.width or
+        self.posY > HGame.Height + self.rect.height
+    ):
+        self.reset()
 
   def die(self):
     self.dead=True
@@ -99,4 +131,9 @@ class Hurdle(SimpleSprite):
     if not self.dead:
       self.move()
       self.redraw()
+
+      # If the hurdle gets close enough to the core, damage the core
+      if abs(self.posX - self.core.posX) < 50:
+        self.core.take_hit()
+        self.reset()
 

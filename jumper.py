@@ -30,11 +30,12 @@ from bullet import Bullet
 class Jumper(SimpleSprite):
   """Sprite for main jumper character"""
   
-  def __init__(self,sprite_map,color_key=None):
+  def __init__(self, sprite_map, color_key=None, player_id=1):
     '''Jumper construction, now since we have separated the jumper from the game
     the game object must be available for referencing, so we pass it along in the init, 
     as a parameter, every time we construct the Jumper'''
-    super().__init__()    
+    super().__init__()
+    self.player_id = player_id  
 
     #setting Jumper sounds
     self.jumpSound=pygame.mixer.Sound(getSoundFile("jump.wav"))
@@ -123,9 +124,13 @@ class Jumper(SimpleSprite):
     self.rect.midbottom = (self.posX,self.posY)
     
     #update lives display
-    HGame.TextOut("Lives:{0}".format(self.lives),(HGame.Width-350,0))    
+    if self.player_id == 1:
+        pos = (HGame.Width - 150, 10)      # Player 1 lives
+    else:
+        pos = (HGame.Width - 150, 40)      # Player 2 lives (lower line)
 
-
+    HGame.TextOut(f"Lives:{self.lives}", pos, RGB_GREEN)
+   
   def jump(self,platform):
     '''Jumper can jump only when their feet touch the floor/platform by changing their velocity (KICK) in the Y direction;
     jump also ends when colliding with the floor/platform, just like in real world'''
@@ -161,6 +166,3 @@ class Jumper(SimpleSprite):
       self.move(lkey,rkey)
       self.redraw()      
     
-
-    
-

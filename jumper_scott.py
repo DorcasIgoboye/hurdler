@@ -29,11 +29,11 @@ from consts import *
 class Scott(Jumper):
   """Sprite for main jumper character"""
   
-  def __init__(self):
+  def __init__(self, player_id=2):
     '''Jumper construction, now since we have separated the jumper from the game
     the game object must be available for referencing, so we pass it along in the init, 
     as a parameter, every time we construct the Jumper'''
-    super().__init__(SCOTT_SPRITES,color_key=(46,255,130))
+    super().__init__(SCOTT_SPRITES, color_key=(46,255,130), player_id=player_id)
     #initialize additional behaviour
     self.ducking=False
     self.duckSpriteImage=self.smap.load_one(SCOTT_SPRITES['duck_sprite'],color_key=(46,255,130))
